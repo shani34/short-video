@@ -1,11 +1,40 @@
 package main
 
 import (
+	"context"
 	"io"
 	"log"
 	"net/http"
 	"os"
+	"time"
+
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+var (
+	mongoClient *mongo.Client
+)
+
+func connectToMongoDB() {
+	// Set up MongoDB connection options
+	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
+
+	// Connect to MongoDB
+	client, err := mongo.Connect(context.TODO(), clientOptions)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Ping the MongoDB server to check if the connection was successful
+	err = client.Ping(context.TODO(), nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	mongoClient = client
+	log.Println("Connected to MongoDB")
+}
 
 func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	// Limit request size to prevent abuse
@@ -36,10 +65,33 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Insert the video record into the MongoDB collection
+	video := Video{
+		Filename:   handler.Filename,
+		Path:       f.Name(),
+		UploadedAt: time.Now(),
+	}
+	collection := mongoClient.Database("videoapp").Collection("videos")
+	_, err = collection.InsertOne(context.TODO(), video)
+	if err != nil {
+		log.Println("Error inserting video record into MongoDB:", err)
+		http.Error(w, "Error inserting video record into MongoDB", http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
 }
 
+type Video struct {
+	Filename   string    `bson:"filename"`
+	Path       string    `bson:"path"`
+	UploadedAt time.Time `bson:"uploadedAt"`
+}
+
 func main() {
+	// Connect to MongoDB
+	connectToMongoDB()
+
 	// Serve the static files
 	fs := http.FileServer(http.Dir("web"))
 	http.Handle("/", fs)

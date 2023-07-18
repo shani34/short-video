@@ -1,0 +1,51 @@
+/* CSS styles for the page layout */
+/* ... */
+/* CSS styles for the page layout */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+  }
+  
+  h1 {
+    text-align: center;
+  }
+  
+  video {
+    width: 100%;
+    height: auto;
+    display: block;
+    margin: 20px auto;
+  }
+  
+  button {
+    display: block;
+    margin: 10px auto;
+    padding: 10px 20px;
+    font-size: 16px;
+  }
+  
+  button:hover {
+    cursor: pointer;
+  }
+  
+  #shareButton {
+    background-color: #4caf50;
+    color: white;
+  }
+  
+  #shareButton:hover {
+    background-color: #45a049;
+  }
+  
+  #recordButton,
+  #stopButton {
+    background-color: #f44336;
+    color: white;
+  }
+  
+  #recordButton:hover,
+  #stopButton:hover {
+    background-color: #d32f2f;
+  }
+  
